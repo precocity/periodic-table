@@ -296,33 +296,33 @@ class Component extends DCLogic {
     const node = this.rootEl;
     if (!node || !window.htmlToImage) return;
 
-    // Snapshot the styles fit() manages, then render the table at natural size
-    // (unscaled, statically positioned) with padding so nothing is clipped.
+    // Measure the natural (unscaled) footprint synchronously: flip to natural
+    // size, read it, flip back -- all in one tick, so nothing is ever visibly
+    // painted mid-change. (Leaving the live node in that state across the
+    // await below is what used to make the page balloon to full size and
+    // shift on screen for the whole (network-bound) capture, and let fit()'s
+    // ResizeObserver stomp on it mid-capture -- causing the cropped export.)
     const prevPad = node.style.padding;
     const prevT = node.style.transform;
     const prevPos = node.style.position;
     const prevW = node.style.width;
     const prevBox = node.style.boxSizing;
-    const restore = () => {
-      node.style.padding = prevPad;
-      node.style.transform = prevT;
-      node.style.position = prevPos;
-      node.style.width = prevW;
-      node.style.boxSizing = prevBox;
-      this.fit();
-    };
     node.style.transform = "none";
     node.style.position = "static";
     node.style.width = "max-content";
     node.style.padding = "48px";
     node.style.boxSizing = "content-box";
+    const width = node.offsetWidth;
+    const height = node.offsetHeight;
+    node.style.padding = prevPad;
+    node.style.transform = prevT;
+    node.style.position = prevPos;
+    node.style.width = prevW;
+    node.style.boxSizing = prevBox;
 
     try {
       // Web fonts must be loaded before capture, or text exports blank/fallback.
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
-
-      const width = node.offsetWidth;
-      const height = node.offsetHeight;
 
       // Cap pixelRatio so a very wide table can't exceed the browser's max
       // canvas size, which silently yields a blank image.
@@ -337,6 +337,10 @@ class Component extends DCLogic {
         height,
         cacheBust: true,
         filter: (n) => !(n.dataset && n.dataset.noexport),
+        // Applied only to html-to-image's internal clone (never the live,
+        // on-screen node), so the real page stays untouched for the whole
+        // capture.
+        style: { transform: "none", position: "static", padding: "48px", boxSizing: "content-box" },
       };
 
       // First pass primes font/image embedding in the clone; many browsers
@@ -351,8 +355,6 @@ class Component extends DCLogic {
     } catch (err) {
       console.error("JPG export failed:", err);
       alert("Sorry — the image export failed. See the browser console for details.");
-    } finally {
-      restore();
     }
   };
 

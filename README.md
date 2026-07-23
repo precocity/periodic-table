@@ -3,7 +3,7 @@
 A single-page visualization that arranges the roles on a software delivery team as
 elements in a periodic table — from Product Owner to Customer Success — complete with
 tongue-in-cheek RPG-style stats (`1d20 • Vision`, `1d10 • Deploys`, …). Built by
-[Precocity](https://github.com/precocity).
+[Precocity](https://precocityllc.com).
 
 **Live view:** open `index.html` in any modern browser.
 

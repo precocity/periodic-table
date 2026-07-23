@@ -32,7 +32,7 @@
 <!-- PAGE CANVAS. --ink / --edge default in styles.css (:root) but are
      overridden here per the active color mode, so .btn-outline/.toggle
      (which reference var(--edge)/var(--ink)) pick it up automatically. -->
-<div style="min-height:100vh;--ink:{{ ink }};--edge:{{ edgeColor }};background:{{ pageBg }};color:var(--ink);font-family:'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;box-sizing:border-box;padding:48px 24px;overflow-x:hidden;">
+<div style="min-height:100vh;--ink:{{ ink }};--edge:{{ edgeColor }};--bg:{{ pageBg }};background:var(--bg);color:var(--ink);font-family:'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;box-sizing:border-box;padding:48px 24px;overflow-x:hidden;">
   <!-- SIZER: reserves the scaled footprint of the table. fit() writes its
        width/height so surrounding page flow is correct. -->
   <div ref="{{ setSizer }}" style="position:relative;margin:0 auto;">
@@ -82,21 +82,21 @@
     <div style="display:flex;flex-direction:column;width:{{ wrapperW }};align-items:{{ bandBlockAlign }};gap:{{ rowGap }}px;transition:gap .45s ease;">
 
     <!-- PERIOD 1: the two leadership tiles (Product Owner + CTO), pinned to the
-         row ends. Colors come from heroBd/heroBg + ctoBd/ctoBg. -->
+         row ends. Click opens the detail modal (see heroCell/ctoCell.open). -->
     <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;align-self:stretch;">
-      <div class="cell" style="border-color:{{ heroBd }};background:{{ heroBg }};">
-        <span class="cell-num">1</span>
-        <span class="cell-charge">+/–</span>
-        <span class="cell-sym">Po</span>
-        <span class="cell-name">Product Owner / Manager</span>
-        <span class="cell-stat">1d20 • Vision</span>
+      <div class="cell" onClick="{{ heroCell.open }}" style="border-color:{{ heroCell.bd }};background:{{ heroCell.bg }};">
+        <span class="cell-num">{{ heroCell.n }}</span>
+        <span class="cell-charge">{{ heroCell.charge }}</span>
+        <span class="cell-sym">{{ heroCell.sym }}</span>
+        <span class="cell-name">{{ heroCell.name }}</span>
+        <span class="cell-stat">{{ heroCell.stat }}</span>
       </div>
       <sc-if value="{{ showCto }}" hint-placeholder-val="{{ true }}">
-        <div class="cell" style="border-color:{{ ctoBd }};background:{{ ctoBg }};">
-          <span class="cell-num">82</span>
-          <span class="cell-sym">Ct</span>
-          <span class="cell-name">CTO / VP Engineering</span>
-          <span class="cell-stat">1d10 • Strategy</span>
+        <div class="cell" onClick="{{ ctoCell.open }}" style="border-color:{{ ctoCell.bd }};background:{{ ctoCell.bg }};">
+          <span class="cell-num">{{ ctoCell.n }}</span>
+          <span class="cell-sym">{{ ctoCell.sym }}</span>
+          <span class="cell-name">{{ ctoCell.name }}</span>
+          <span class="cell-stat">{{ ctoCell.stat }}</span>
         </div>
       </sc-if>
     </div>
@@ -119,7 +119,7 @@
           </sc-if>
           <div style="display:flex;flex-wrap:{{ bandWrap }};justify-content:{{ bandJustify }};gap:{{ cellGap }}px;transition:gap .45s ease;">
             <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
-              <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+              <div class="cell" onClick="{{ c.open }}" style="border-color:{{ c.bd }};background:{{ c.bg }};">
                 <span class="cell-num">{{ c.n }}</span>
                 <span class="cell-sym">{{ c.sym }}</span>
                 <span class="cell-name">{{ c.name }}</span>
@@ -145,7 +145,7 @@
           </sc-if>
           <div style="display:flex;flex-wrap:{{ bandWrap }};justify-content:{{ bandJustify }};gap:{{ cellGap }}px;transition:gap .45s ease;">
             <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
-              <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+              <div class="cell" onClick="{{ c.open }}" style="border-color:{{ c.bd }};background:{{ c.bg }};">
                 <span class="cell-num">{{ c.n }}</span>
                 <span class="cell-sym">{{ c.sym }}</span>
                 <span class="cell-name">{{ c.name }}</span>
@@ -171,7 +171,7 @@
           </sc-if>
           <div style="display:flex;flex-wrap:{{ bandWrap }};justify-content:{{ bandJustify }};gap:{{ cellGap }}px;transition:gap .45s ease;">
             <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
-              <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+              <div class="cell" onClick="{{ c.open }}" style="border-color:{{ c.bd }};background:{{ c.bg }};">
                 <span class="cell-num">{{ c.n }}</span>
                 <span class="cell-sym">{{ c.sym }}</span>
                 <span class="cell-name">{{ c.name }}</span>
@@ -191,7 +191,7 @@
         <span class="bracket-label" style="opacity:.9;margin-bottom:0;">{{ overflowGroup.label }}</span>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:{{ cellGap }}px;transition:gap .45s ease;">
           <sc-for list="{{ overflowGroup.cells }}" as="c" hint-placeholder-count="2">
-            <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+            <div class="cell" onClick="{{ c.open }}" style="border-color:{{ c.bd }};background:{{ c.bg }};">
               <span class="cell-num">{{ c.n }}</span>
               <span class="cell-sym">{{ c.sym }}</span>
               <span class="cell-name">{{ c.name }}</span>
@@ -215,6 +215,43 @@
     </sc-if>
 
   </div>
+
+  <!-- ELEMENT DETAIL MODAL — a sibling of the scaled ROOT COLUMN above, not a
+       descendant of it: this card uses position:fixed, and a transformed
+       ancestor (ROOT COLUMN gets transform:scale from fit()) becomes the
+       containing block for fixed descendants, which would trap the overlay
+       inside the table's own scaled/repositioned box instead of the real
+       viewport. Being outside rootEl also means it's never captured by the
+       JPG export, without needing data-noexport. -->
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="modal-backdrop" onClick="{{ closeModal }}">
+      <div class="modal-card" onClick="{{ stopClick }}">
+        <button class="modal-close" onClick="{{ closeModal }}" aria-label="Close">×</button>
+        <div class="modal-cell-frame">
+          <div class="cell" style="border-color:{{ selected.bd }};background:{{ selected.bg }};transform:scale(1.5);cursor:default;">
+            <span class="cell-num">{{ selected.n }}</span>
+            <sc-if value="{{ selected.charge }}" hint-placeholder-val="{{ false }}">
+              <span class="cell-charge">{{ selected.charge }}</span>
+            </sc-if>
+            <span class="cell-sym">{{ selected.sym }}</span>
+            <span class="cell-name">{{ selected.name }}</span>
+            <span class="cell-stat">{{ selected.stat }}</span>
+          </div>
+        </div>
+        <div class="modal-kicker">{{ selected.groupLabel }}</div>
+        <div class="modal-role">{{ selected.name }}</div>
+        <div class="modal-stat">{{ selected.stat }}</div>
+        <div class="modal-desc">{{ selected.desc }}</div>
+        <!-- Swaps `selected` in place (see gotoNext/gotoPrev in renderVals) --
+             the modal never closes and reopens while cycling. -->
+        <div class="modal-nav">
+          <button class="modal-nav-btn" onClick="{{ selected.gotoPrev }}" aria-label="Previous">‹ Prev</button>
+          <div class="modal-nav-pos">{{ selected.posLabel }}</div>
+          <button class="modal-nav-btn" onClick="{{ selected.gotoNext }}" aria-label="Next">Next ›</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
   </div>
 </div>
 </x-dc>
@@ -237,8 +274,9 @@ class Component extends DCLogic {
   // narrow: true when the viewport is below BREAKPOINT (wrap instead of scale).
   // mono: Black & White palette (no per-phase hues). lightTheme: Light background.
   // The 2x2 of {mono, lightTheme} is the 4 color modes: Color Dark / Color Light /
-  // Black & White Dark / Black & White Light.
-  state = { override: null, narrow: false, mono: false, lightTheme: false };
+  // Black & White Dark / Black & White Light. selected: the clicked cell object
+  // (with its resolved colors baked in), or null when the detail modal is closed.
+  state = { override: null, narrow: false, mono: false, lightTheme: false, selected: null };
   BREAKPOINT = 1300;
 
   // Header toggle handlers.
@@ -248,6 +286,18 @@ class Component extends DCLogic {
   setMonoPalette = () => this.setState({ mono: true });
   setDarkTheme = () => this.setState({ lightTheme: false });
   setLightTheme = () => this.setState({ lightTheme: true });
+
+  // Element detail modal. Each cell's own `open` handler (built in renderVals)
+  // sets `selected`; closeModal clears it. stopClick sits on the modal card so
+  // clicking inside it doesn't bubble up to the backdrop and close the modal.
+  closeModal = () => this.setState({ selected: null });
+  stopClick = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
+  onKeyDown = (e) => {
+    if (!this.state.selected) return;
+    if (e.key === "Escape") this.closeModal();
+    else if (e.key === "ArrowRight") this.state.selected.gotoNext();
+    else if (e.key === "ArrowLeft") this.state.selected.gotoPrev();
+  };
 
   // ref callbacks: capture the scaled column (rootEl) and its sizer (sizerEl).
   setRoot = (el) => { this.rootEl = el; this.observe(); };
@@ -299,6 +349,7 @@ class Component extends DCLogic {
 
   componentDidMount() {
     window.addEventListener("resize", this.fit);
+    window.addEventListener("keydown", this.onKeyDown);
     this.observe();
     this.fit();
   }
@@ -310,6 +361,7 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.fit);
+    window.removeEventListener("keydown", this.onKeyDown);
     if (this._ro) this._ro.disconnect();
     clearTimeout(this._fitT);
   }
@@ -421,10 +473,20 @@ class Component extends DCLogic {
     const swatchShade = (hue, idx) => isMono
       ? { bd: inkRGBA(GRAY_STEPS[idx % GRAY_STEPS.length]), bg: inkRGBA(GRAY_STEPS[idx % GRAY_STEPS.length] * 0.55) }
       : { bd: `oklch(${L} ${C} ${hue})`, bg: `oklch(${L} ${C} ${hue} / ${swFillA})` };
-    // Attach resolved colors to every cell in a group. idx positions the group
-    // in the fixed 9-group sequence (band1+band2+band3+overflow) so B&W's tone
-    // cycle stays consistent between the tiles and the legend.
-    const deco = (g, idx) => ({ ...g, cells: g.cells.map(c => ({ ...c, ...cellShade(g.hue, idx) })) });
+    // Attach resolved colors + a click-to-open handler to every cell in a
+    // group. idx positions the group in the fixed 9-group sequence
+    // (band1+band2+band3+overflow) so B&W's tone cycle stays consistent
+    // between the tiles and the legend. open() closes over the fully merged
+    // cell (colors included) so the modal renders an exact match of the tile
+    // that was clicked, in whatever color mode is currently active.
+    const deco = (g, idx) => ({
+      ...g,
+      cells: g.cells.map(c => {
+        const merged = { ...c, ...cellShade(g.hue, idx), groupLabel: g.label };
+        merged.open = () => this.setState({ selected: merged });
+        return merged;
+      }),
+    });
 
     const LEAD = 85; // hue for the leadership tiles (Po / Ct)
     // Leadership gets its own fixed, most-prominent tone rather than joining
@@ -432,69 +494,83 @@ class Component extends DCLogic {
     const leadCell = isMono ? { bd: inkRGBA(0.92), bg: inkRGBA(0.92 * 0.34) } : { bd: `oklch(${L} ${C} ${LEAD})`, bg: `oklch(${L} ${C} ${LEAD} / ${fillA})` };
     const leadSwatch = isMono ? { bd: inkRGBA(0.92), bg: inkRGBA(0.92 * 0.55) } : { bd: `oklch(${L} ${C} ${LEAD})`, bg: `oklch(${L} ${C} ${LEAD} / ${swFillA})` };
 
-    // --- Table data. Each phase: label, hue, and its role cells. ---
+    const heroCell = {
+      n: 1, sym: "Po", name: "Product Owner / Manager", stat: "1d20 • Vision", charge: "+/–",
+      groupLabel: "Leadership", ...leadCell,
+      desc: "Officially owns the roadmap. Unofficially owns the group chat labeled 'URGENT — pls advise,' a Jira board with fourteen swimlanes nobody asked for, and the phrase 'let's take this offline.' Converts vague executive vibes into user stories, then converts user stories back into vague executive vibes the moment the executive changes their mind in the hallway.\n\nTheir superpower is attending eleven meetings a day and somehow still being the one who 'circles back.' Their kryptonite is a Slack message that just says 'quick question.'",
+    };
+    heroCell.open = () => this.setState({ selected: heroCell });
+    const ctoCell = {
+      n: 82, sym: "Ct", name: "CTO / VP Engineering", stat: "1d10 • Strategy",
+      groupLabel: "Leadership", ...leadCell,
+      desc: "Once wrote code. Now writes strategy decks about the code other people write, in a font size visible from across the boardroom. Fluent in 'let's double-click on that' and 'directionally correct,' and can pivot the entire technical roadmap between the appetizer and entrée course of a dinner with investors.\n\nSecretly still has opinions about tabs vs. spaces, but has been advised by comms not to share them publicly.",
+    };
+    ctoCell.open = () => this.setState({ selected: ctoCell });
+
+    // --- Table data. Each phase: label, hue, and its role cells. desc is the
+    // click-to-expand modal bio -- accurate, but tongue-in-cheek. ---
     const band1 = [
       { label: "Discovery", hue: 25, cells: [
-        { n: 5, sym: "Ba", name: "Business Analyst", stat: "1d12 • Requirements" },
-        { n: 6, sym: "Xr", name: "UX Researcher", stat: "1d8 • Interviews" },
-        { n: 7, sym: "Sd", name: "Service Designer", stat: "1d8 • Journey Maps" },
-        { n: 8, sym: "Sk", name: "Stakeholder / Sponsor", stat: "1d4 • Scope Creep" },
+        { n: 5, sym: "Ba", name: "Business Analyst", stat: "1d12 • Requirements", desc: "Interviews eleven stakeholders, receives eleven contradictory answers, and produces one 40-page requirements document that somehow satisfies none of them. Lives in the gap between what the business says it wants and what the business actually wants, which is a surprisingly large and hostile gap.\n\nTheir favorite sentence starts with 'to clarify' and ends forty-five minutes later." },
+        { n: 6, sym: "Xr", name: "UX Researcher", stat: "1d8 • Interviews", desc: "Spends six weeks recruiting participants, running sessions, and synthesizing insights into a beautifully rigorous report — which gets read by exactly one person before the roadmap is quietly rebuilt around whatever the loudest exec said in the hallway that morning.\n\nHas trained themselves to say 'that's an interesting hypothesis' without a trace of sarcasm, even at hour four of a session on button color." },
+        { n: 7, sym: "Sd", name: "Service Designer", stat: "1d8 • Journey Maps", desc: "Draws a journey map so long it requires butcher paper, three colors of sticky note, and a wall normally reserved for fire evacuation routes. Successfully proves the customer experience touches fourteen departments, none of which were in the room, all of which will now be very upset.\n\nBelieves, correctly, that the real product is the org chart wearing a trench coat." },
+        { n: 8, sym: "Sk", name: "Stakeholder / Sponsor", stat: "1d4 • Scope Creep", desc: "Appears at kickoff radiating enthusiasm and vision. Reappears in week eleven to ask why the thing doesn't do the other thing they never mentioned, in a tone suggesting this was always the plan.\n\nTheir signature move is a 'quick thought' delivered forty-eight hours before launch — neither quick, nor a thought, so much as a complete re-scoping of the project." },
       ]},
       { label: "Design", hue: 65, cells: [
-        { n: 13, sym: "Ux", name: "UX Designer", stat: "1d8 • Wireframes" },
-        { n: 14, sym: "Ui", name: "UI Designer", stat: "1d6 • Pixels" },
-        { n: 15, sym: "Cw", name: "Content Strategist / UX Writer", stat: "1d6 • Microcopy" },
-        { n: 16, sym: "Ac", name: "Accessibility Specialist", stat: "1d8 • Contrast Ratios" },
-        { n: 17, sym: "Dt", name: "Design Technologist", stat: "1d8 • Prototypes" },
+        { n: 13, sym: "Ux", name: "UX Designer", stat: "1d8 • Wireframes", desc: "Translates 'make it easier to use' into eleven Figma frames, four rounds of user testing, and one carefully reasoned information architecture — which then gets 'simplified' in a meeting they weren't invited to.\n\nCan spot a misaligned 4px margin from across the office and will not be able to un-see it for the rest of the day." },
+        { n: 14, sym: "Ui", name: "UI Designer", stat: "1d6 • Pixels", desc: "Turns wireframes into something people will actually enjoy looking at, one carefully chosen shadow and border-radius at a time. Owns a color palette with names like 'Slightly More Confident Blue' and will die on the hill that it is not the same as 'Confident Blue.'\n\nHas strong, private feelings about Comic Sans and Papyrus that they are legally required to keep to themselves." },
+        { n: 15, sym: "Cw", name: "Content Strategist / UX Writer", stat: "1d6 • Microcopy", desc: "Rewrites 'Error: Something went wrong' into a warm, on-brand, delightfully human sentence that still, at its core, means 'Error: Something went wrong.' Fights, and mostly loses, the eternal battle against a button labeled 'Submit.'\n\nKnows the difference between 'which' and 'that,' and will absolutely bring it up unprompted." },
+        { n: 16, sym: "Ac", name: "Accessibility Specialist", stat: "1d8 • Contrast Ratios", desc: "The only person in the building who has actually used a screen reader on the product, and boy, do they have thoughts. Politely, repeatedly, and correctly points out that the beautiful low-contrast gray-on-white text everyone loves is functionally invisible to a meaningful chunk of actual humans.\n\nConsiders 'we'll fix it in v2' a threat, not a plan." },
+        { n: 17, sym: "Dt", name: "Design Technologist", stat: "1d8 • Prototypes", desc: "Lives in the gap between Figma and production, building the prototype that proves an idea works before engineering spends six weeks discovering it doesn't, quite. Fluent in both design jargon and 'actually, that's a nontrivial API change.'\n\nHas strong opinions about design tokens that 90% of the room did not know were a topic." },
       ]},
       { label: "Architecture", hue: 130, cells: [
-        { n: 21, sym: "Sa", name: "Solutions Architect", stat: "1d10 • Diagrams" },
-        { n: 22, sym: "Tl", name: "Technical Lead", stat: "1d10 • Code Reviews" },
-        { n: 23, sym: "Da", name: "Data Architect", stat: "1d8 • Schemas" },
-        { n: 24, sym: "Sc", name: "Security Architect", stat: "1d10 • Threat Models" },
+        { n: 21, sym: "Sa", name: "Solutions Architect", stat: "1d10 • Diagrams", desc: "Draws boxes and arrows connecting systems that, in reality, barely tolerate each other's existence. The diagram is beautiful. The diagram is also, everyone quietly agrees, aspirational.\n\nTheir favorite phrase is 'it depends,' delivered with the calm authority of someone who has, in fact, seen it all go wrong before." },
+        { n: 22, sym: "Tl", name: "Technical Lead", stat: "1d10 • Code Reviews", desc: "Reviews everyone's pull requests, writes very little code of their own anymore, and has developed a sixth sense for spotting a race condition from the PR title alone. Serves as the human API between engineering reality and whatever the roadmap says is 'basically done.'\n\nAnswers 'how long will this take' with a sigh so precisely calibrated it functions as a unit of time." },
+        { n: 23, sym: "Da", name: "Data Architect", stat: "1d8 • Schemas", desc: "Designs the schema so that, five years from now, some poor soul can still make sense of it. Has strong feelings about normalization that most colleagues nod along to without fully following, and is quietly right about all of them.\n\nOnce found a 'temporary' table that had been in production for six years, and grieved appropriately." },
+        { n: 24, sym: "Sc", name: "Security Architect", stat: "1d10 • Threat Models", desc: "Sees a beautifully designed feature and immediately sees seven ways to compromise it, none of which the room considered, all of which are correct. Lives by the principle that the most secure system is the one nobody can use, and resists that temptation daily.\n\nTheir calendar invite subject lines are the scariest thing in the company." },
       ]},
     ];
     const band2 = [
       { label: "Development", hue: 160, cells: [
-        { n: 26, sym: "Fe", name: "Frontend Developer", stat: "1d8 • CSS" },
-        { n: 27, sym: "Be", name: "Backend Developer", stat: "1d10 • Uptime" },
-        { n: 28, sym: "Fs", name: "Full-Stack Developer", stat: "1d12 • Context Switching" },
-        { n: 29, sym: "Mo", name: "Mobile Developer", stat: "1d8 • App Store Rejections" },
-        { n: 30, sym: "Db", name: "Database Administrator", stat: "1d8 • Queries" },
-        { n: 31, sym: "Do", name: "DevOps / Platform Engineer", stat: "1d10 • Deploys" },
-        { n: 32, sym: "Sr", name: "Site Reliability Engineer", stat: "1d10 • Incidents" },
+        { n: 26, sym: "Fe", name: "Frontend Developer", stat: "1d8 • CSS", desc: "Builds the part everyone sees, and therefore the part everyone has opinions about. Spends 20% of their time writing features and 80% debating whether that's actually a browser bug or, more likely, CSS being CSS.\n\nHas achieved pixel-perfect parity across four browsers and one hostile stakeholder's outdated laptop." },
+        { n: 27, sym: "Be", name: "Backend Developer", stat: "1d10 • Uptime", desc: "Builds the invisible plumbing that makes everything else possible, and receives credit for it exactly never — until it goes down at 2 a.m., at which point they receive all of it, urgently, via phone call.\n\nMeasures success in nines of uptime and the profound, quiet joy of a boring, uneventful Friday deploy." },
+        { n: 28, sym: "Fs", name: "Full-Stack Developer", stat: "1d12 • Context Switching", desc: "Technically owns the whole stack, which in practice means owning every bug that can't be confidently blamed on someone else. Context-switches between React, SQL, Docker, and a vague sense of dread, sometimes within the same ticket.\n\nHas strong opinions about 'full-stack' being a euphemism for 'short-staffed,' and is not wrong." },
+        { n: 29, sym: "Mo", name: "Mobile Developer", stat: "1d8 • App Store Rejections", desc: "Ships a perfect build, then watches it get rejected by an app store review process that reads more like weather than engineering. Maintains two entirely separate codebases so iOS and Android users can each be disappointed in their own special way.\n\nDreams, occasionally, in provisioning profiles." },
+        { n: 30, sym: "Db", name: "Database Administrator", stat: "1d8 • Queries", desc: "Guards the data with the vigilance of a dragon guarding gold, mostly because someone, somewhere, is always one careless query away from a very bad Tuesday. Has a permissions philosophy best summarized as 'no.'\n\nTheir happiest moment each week is the backup completing successfully and nobody needing to know it ever ran." },
+        { n: 31, sym: "Do", name: "DevOps / Platform Engineer", stat: "1d10 • Deploys", desc: "Automates the thing that used to take a team a week, then spends the time saved building the pipeline that automates the automation. Speaks fluent YAML, which is either a language or a cry for help depending on the indentation.\n\nBelieves, with quiet conviction, that 'it works on my machine' is not a defense — it's a confession." },
+        { n: 32, sym: "Sr", name: "Site Reliability Engineer", stat: "1d10 • Incidents", desc: "Lives by an error budget and a pager that goes off at the worst possible moment, every time, without fail. Writes beautifully calm, blameless postmortems for incidents that were, everyone agrees privately, absolutely someone's fault.\n\nTheir idea of a great day is one indistinguishable from a day they weren't needed at all." },
       ]},
       { label: "Quality", hue: 195, cells: [
-        { n: 40, sym: "Qa", name: "QA Engineer", stat: "1d8 • Bugs Found" },
-        { n: 41, sym: "Qb", name: "QA Automation Engineer", stat: "1d8 • Flaky Tests" },
-        { n: 42, sym: "Pf", name: "Performance Engineer", stat: "1d10 • Load Tests" },
-        { n: 43, sym: "Pt", name: "Security Engineer / Pen Tester", stat: "1d10 • Exploits" },
+        { n: 40, sym: "Qa", name: "QA Engineer", stat: "1d8 • Bugs Found", desc: "Finds the one input nobody thought to test, breaks the feature in eleven creative and deeply personal ways, and reports each one with the calm satisfaction of a job well done. Somehow always finds the bug thirty minutes before the demo.\n\nTheir favorite two words are 'reproduction steps,' spoken with the gravity of a legal deposition." },
+        { n: 41, sym: "Qb", name: "QA Automation Engineer", stat: "1d8 • Flaky Tests", desc: "Writes tests to catch the bugs the humans keep making, then spends half their week fixing the tests that broke because the humans changed a button label again. Maintains a suite that is 94% green and 6% 'known flaky, don't worry about it.'\n\nDreams of a fully green pipeline the way most people dream of a beach vacation." },
+        { n: 42, sym: "Pf", name: "Performance Engineer", stat: "1d10 • Load Tests", desc: "Notices the page takes 400ms longer to load than it should and will not rest, sleep, or make eye contact with anyone until they know exactly why. Speaks fluent flame graph and has genuinely strong opinions about garbage collection pauses.\n\nConsiders 'it feels fast enough' the most insulting sentence in the English language." },
+        { n: 43, sym: "Pt", name: "Security Engineer / Pen Tester", stat: "1d10 • Exploits", desc: "Gets paid to break into the company on purpose, which is either the best or worst job in the building depending on how the last audit went. Finds the one exposed endpoint everyone forgot about and writes it up with the gleeful precision of a magician revealing the trick.\n\nThe report is titled 'Findings.' Everyone dreads the word 'Findings.'" },
       ]},
     ];
     const band3 = [
       { label: "Project & Program Management", hue: 230, cells: [
-        { n: 50, sym: "Pm", name: "Project Manager", stat: "1d8 • Gantt Charts" },
-        { n: 51, sym: "Sm", name: "Scrum Master", stat: "1d8 • Standups" },
-        { n: 52, sym: "Pg", name: "Program Manager", stat: "1d10 • Dependencies" },
-        { n: 53, sym: "Em", name: "Engineering Manager", stat: "1d10 • 1:1s" },
+        { n: 50, sym: "Pm", name: "Project Manager", stat: "1d8 • Gantt Charts", desc: "Owns the Gantt chart, the timeline, and the increasingly uncomfortable job of telling engineering leadership that no, three weeks did not, in fact, get shorter because they wished really hard.\n\nHas perfected 'let's talk about scope' as a polite way of saying 'absolutely not.'" },
+        { n: 51, sym: "Sm", name: "Scrum Master", stat: "1d8 • Standups", desc: "Protects the sprint with the fierce, slightly exhausted energy of someone guarding a sandcastle from the tide. Runs a daily standup that is, on a good day, fifteen minutes, and on a normal day, a status meeting wearing a ceremony's clothing.\n\nHas said 'let's take that offline' more times this year than they've said their own name." },
+        { n: 52, sym: "Pg", name: "Program Manager", stat: "1d10 • Dependencies", desc: "Manages the dependencies between six teams who all insist they are not the bottleneck, and produces a beautiful cross-team roadmap that is accurate for approximately one sprint. Fluent in diplomatically translating 'that's not my problem' into 'let's align on ownership.'\n\nTheir calendar is a crime scene. They would not have it any other way." },
+        { n: 53, sym: "Em", name: "Engineering Manager", stat: "1d10 • 1:1s", desc: "Spends their day in 1:1s, performance calibration spreadsheets, and the ongoing, delicate art of translating 'the roadmap changed again' into something a tired team can hear without flinching.\n\nRemembers what it was like to write code the way one remembers a past life — fondly, vaguely, and with growing uncertainty about the details." },
       ]},
       { label: "Delivery & Launch", hue: 275, cells: [
-        { n: 60, sym: "Rm", name: "Release Manager", stat: "1d8 • Changelogs" },
-        { n: 61, sym: "Tw", name: "Technical Writer", stat: "1d6 • Docs" },
-        { n: 62, sym: "Tr", name: "Training / Enablement Specialist", stat: "1d6 • Onboarding" },
-        { n: 63, sym: "Mk", name: "Marketing / Comms", stat: "1d6 • Launch Emails" },
+        { n: 60, sym: "Rm", name: "Release Manager", stat: "1d8 • Changelogs", desc: "Writes the changelog, coordinates the deploy, and holds, alone, the terrible knowledge of exactly which Friday afternoon release everyone swore was a 'tiny, safe change.'\n\nHas a personal, well-earned rule about deploying after 3 p.m. that the rest of the company keeps forgetting exists." },
+        { n: 61, sym: "Tw", name: "Technical Writer", stat: "1d6 • Docs", desc: "Documents how the product actually works, as opposed to how the last three engineers who touched it verbally described it to each other. Finds three features nobody knew existed and two that were quietly removed eight months ago.\n\nTheir documentation is the only source of truth in the building, and also the least-read document in the building. Both facts are true at once." },
+        { n: 62, sym: "Tr", name: "Training / Enablement Specialist", stat: "1d6 • Onboarding", desc: "Builds the onboarding materials that explain the product to new hires more clearly than the product explains itself to customers. Sits through every release update so sales and support don't have to find out about a new feature from an angry customer.\n\nHas a slide deck for everything, and yes, that includes a slide about the slide deck." },
+        { n: 63, sym: "Mk", name: "Marketing / Comms", stat: "1d6 • Launch Emails", desc: "Writes the launch email celebrating a feature that shipped, quietly, four sprints late and 20% smaller than originally promised. Turns 'we fixed some bugs' into 'a reimagined experience,' which is, in fairness, technically accurate.\n\nKnows the exact optimal send time for maximum opens and refuses, on principle, to reveal it." },
       ]},
       { label: "Post-Launch", hue: 320, cells: [
-        { n: 70, sym: "Su", name: "Support Engineer", stat: "1d8 • Ticket Triage" },
-        { n: 71, sym: "Mn", name: "Maintenance Developer", stat: "1d8 • Tech Debt" },
-        { n: 72, sym: "An", name: "Data Analyst", stat: "1d8 • Dashboards" },
-        { n: 73, sym: "Cs", name: "Customer Success Manager", stat: "1d8 • Renewals" },
+        { n: 70, sym: "Su", name: "Support Engineer", stat: "1d8 • Ticket Triage", desc: "The first, and sometimes only, human a frustrated customer ever talks to, armed with a macro, a canned apology, and a growing private theory about what's actually broken. Files the same bug for the third time this month with the patience of a saint.\n\nKnows more about how customers actually use the product than anyone who built it, and is rarely asked." },
+        { n: 71, sym: "Mn", name: "Maintenance Developer", stat: "1d8 • Tech Debt", desc: "Inherits code written by someone who left the company four years ago, who left behind a single comment that just says '// don't touch this.' Touches it anyway, carefully, like disarming something.\n\nTheir job title says 'maintenance.' Their actual job is archaeology with a deploy button." },
+        { n: 72, sym: "An", name: "Data Analyst", stat: "1d8 • Dashboards", desc: "Builds the dashboard that finally answers the question leadership has been asking for months, which immediately prompts eleven new questions leadership hadn't thought to ask yet. Knows, deep down, that 'can we just get a quick number on this' is never quick and never just one number.\n\nHas strong feelings about pie charts that they will share whether or not you asked." },
+        { n: 73, sym: "Cs", name: "Customer Success Manager", stat: "1d8 • Renewals", desc: "Keeps the account happy, the renewal on track, and the phrase 'per my last email' out of the conversation entirely, through sheer force of diplomacy. Absorbs customer frustration daily and converts it into a calm, constructive feedback ticket that may or may not ever get read.\n\nTheir real job title should be 'Professional Keeper of the Peace,' but that didn't fit on the business card." },
       ]},
     ];
     // Detached below the main table.
     const overflow = { label: "Org Overhead", hue: 355, cells: [
-      { n: 94, sym: "Lc", name: "Legal / Compliance", stat: "1d12 • Redlines" },
-      { n: 95, sym: "Fp", name: "Finance / Procurement", stat: "1d12 • Budget Approvals" },
+      { n: 94, sym: "Lc", name: "Legal / Compliance", stat: "1d12 • Redlines", desc: "Reads the contract so nobody else has to, finds the one clause that changes everything, and delivers the news in a tone so calm it takes a moment to realize the launch just got delayed six weeks.\n\nTheir favorite sentence is 'I have some redlines' — four words capable of ruining an entire afternoon." },
+      { n: 95, sym: "Fp", name: "Finance / Procurement", stat: "1d12 • Budget Approvals", desc: "Approves the budget, questions the expense report, and asks, gently but firmly, why the team needs fourteen SaaS subscriptions that all claim to do the exact same thing.\n\nTheir calculator has seen things. Their spreadsheet has seen more." },
     ]};
 
     // Legend entries: leadership first, then every phase (periodic mode only).
@@ -517,16 +593,39 @@ class Component extends DCLogic {
     const darkBtn = isLight ? idle : active;
     const lightBtn = isLight ? active : idle;
 
+    const band1Groups = band1.map((ph, i) => deco(ph, i));
+    const band2Groups = band2.map((ph, i) => deco(ph, i + band1.length));
+    const band3Groups = band3.map((ph, i) => deco(ph, i + band1.length + band2.length));
+    const overflowGroup = deco(overflow, band1.length + band2.length + band3.length);
+
+    // Flat, reading-order list of every clickable cell -- lets the modal's
+    // Prev/Next step through the whole table without knowing band/group
+    // structure. showCto/showOverflow can hide tiles from the table itself,
+    // so they're excluded here too, or Prev/Next would visit a tile that
+    // isn't actually on screen.
+    const showCto = this.props.showCto ?? true;
+    const showOverflow = this.props.showOverflow ?? true;
+    const allCells = [
+      heroCell, ...(showCto ? [ctoCell] : []),
+      ...band1Groups.flatMap(gr => gr.cells),
+      ...band2Groups.flatMap(gr => gr.cells),
+      ...band3Groups.flatMap(gr => gr.cells),
+      ...(showOverflow ? overflowGroup.cells : []),
+    ];
+    allCells.forEach((c, i) => {
+      const nextC = allCells[(i + 1) % allCells.length];
+      const prevC = allCells[(i - 1 + allCells.length) % allCells.length];
+      c.gotoNext = () => nextC.open();
+      c.gotoPrev = () => prevC.open();
+      c.posLabel = (i + 1) + " / " + allCells.length;
+    });
+
     return {
-      band1Groups: band1.map((ph, i) => deco(ph, i)),
-      band2Groups: band2.map((ph, i) => deco(ph, i + band1.length)),
-      band3Groups: band3.map((ph, i) => deco(ph, i + band1.length + band2.length)),
-      overflowGroup: deco(overflow, band1.length + band2.length + band3.length),
+      band1Groups, band2Groups, band3Groups, overflowGroup,
       legend,
       brackets,
       showLegend: !brackets,
-      heroBd: leadCell.bd, heroBg: leadCell.bg,
-      ctoBd: leadCell.bd, ctoBg: leadCell.bg,
+      heroCell, ctoCell,
       // Color mode (Color/B&W x Dark/Light).
       ink, edgeColor, dividerColor, legendBorderColor, logoFilter, pageBg,
       colorBg: colorBtn.background, colorFg: colorBtn.color,
@@ -537,6 +636,11 @@ class Component extends DCLogic {
       setMonoPalette: this.setMonoPalette,
       setDarkTheme: this.setDarkTheme,
       setLightTheme: this.setLightTheme,
+      // Element detail modal (click a tile to open).
+      selected: this.state.selected,
+      modalOpen: !!this.state.selected,
+      closeModal: this.closeModal,
+      stopClick: this.stopClick,
       // Spacing collapses to a tight grid in periodic mode, opens up when grouped.
       bandGap: brackets ? 40 : 0,
       cellGap: brackets ? 12 : 0,
@@ -570,8 +674,7 @@ class Component extends DCLogic {
       setSizer: this.setSizer,
       downloadJpg: this.downloadJpg,
       showTitle: this.props.showTitle ?? true,
-      showCto: this.props.showCto ?? true,
-      showOverflow: this.props.showOverflow ?? true,
+      showCto, showOverflow,
     };
   }
 }

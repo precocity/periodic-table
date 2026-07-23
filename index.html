@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Custom component runtime (generated from dc-runtime). Provides <x-dc>,
+     sc-for / sc-if, ref bindings, and {{ ... }} interpolation. Do not hand-edit. -->
+<script src="./support.js"></script>
+</head>
+<body>
+<!-- x-dc: root of the declarative component. <helmet> children are injected
+     into <head> at mount time. -->
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Static, repeated styling (tiles, brackets, legend, buttons). Dynamic
+       per-render values stay inline below. -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Rasterizes the table to a JPEG for the "Download JPG" button. -->
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
+</helmet>
+
+<!-- PAGE CANVAS. --ink / --edge are declared in styles.css (:root); the rest of
+     this style is page-level chrome (background, font, padding). -->
+<div style="min-height:100vh;background:#0b1c39;color:var(--ink);font-family:'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;box-sizing:border-box;padding:48px 24px;overflow-x:hidden;">
+  <!-- SIZER: reserves the scaled footprint of the table. fit() writes its
+       width/height so surrounding page flow is correct. -->
+  <div ref="{{ setSizer }}" style="position:relative;margin:0 auto;">
+  <!-- ROOT COLUMN: the actual table. fit() scales/repositions this element; it
+       is also the node captured on export. stackGap is dynamic (grouped vs table). -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:{{ stackGap }}px;width:max-content;position:absolute;top:0;left:0;transform-origin:top left;transition:gap .45s ease;" ref="{{ setRoot }}">
+
+    <!-- HEADER — data-noexport hides it from the JPG export (see filter in downloadJpg). -->
+    <div data-noexport="true" style="align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+      <!-- Layout toggle. Active/idle colors flip with state, so they are inline. -->
+      <div class="toggle">
+        <button class="btn" onClick="{{ setGrouped }}" style="background:{{ gBg }};color:{{ gFg }};">Grouped</button>
+        <button class="btn" onClick="{{ setTable }}" style="background:{{ tBg }};color:{{ tFg }};">Periodic</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <a class="btn btn-outline" href="https://github.com/precocity/periodic-table" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        <button class="btn btn-outline" onClick="{{ downloadJpg }}">Download JPG</button>
+      </div>
+    </div>
+
+    <!-- TITLE (optional via showTitle prop) -->
+    <sc-if value="{{ showTitle }}" hint-placeholder-val="{{ true }}">
+      <div style="align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+        <div style="font-size:30px;font-weight:600;letter-spacing:9px;line-height:1.3;">THE PERIODIC TABLE</div>
+        <div style="font-size:22px;font-weight:300;letter-spacing:7px;line-height:1.4;opacity:.9;">OF SOFTWARE DEVELOPMENT</div>
+        <img src="assets/precocity-logo-white.svg" alt="Precocity" style="height:34px;width:auto;display:block;opacity:.5;margin-top:18px;filter:brightness(0) invert(1);">
+      </div>
+    </sc-if>
+
+    <!-- BANDS WRAPPER — stacks the three phase rows. Width/alignment/gap switch
+         between the single-row (scaled) and narrow (wrapped) layouts, so inline. -->
+    <div style="display:flex;flex-direction:column;width:{{ wrapperW }};align-items:{{ bandBlockAlign }};gap:{{ rowGap }}px;transition:gap .45s ease;">
+
+    <!-- PERIOD 1: the two leadership tiles (Product Owner + CTO), pinned to the
+         row ends. Colors come from heroBd/heroBg + ctoBd/ctoBg. -->
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;align-self:stretch;">
+      <div class="cell" style="border-color:{{ heroBd }};background:{{ heroBg }};">
+        <span class="cell-num">1</span>
+        <span class="cell-charge">+/–</span>
+        <span class="cell-sym">Po</span>
+        <span class="cell-name">Product Owner / Manager</span>
+        <span class="cell-stat">1d20 • Vision</span>
+      </div>
+      <sc-if value="{{ showCto }}" hint-placeholder-val="{{ true }}">
+        <div class="cell" style="border-color:{{ ctoBd }};background:{{ ctoBg }};">
+          <span class="cell-num">82</span>
+          <span class="cell-sym">Ct</span>
+          <span class="cell-name">CTO / VP Engineering</span>
+          <span class="cell-stat">1d10 • Strategy</span>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- The three phase rows are structurally identical; only the data differs
+         (band1Groups / band2Groups / band3Groups from renderVals). -->
+
+    <!-- BAND 1 -->
+    <div style="display:flex;align-items:flex-start;align-self:stretch;justify-content:{{ bandJustify }};gap:{{ bandGap }}px;flex-wrap:{{ bandWrap }};width:{{ bandW }};flex:none;transition:gap .45s ease;">
+      <sc-for list="{{ band1Groups }}" as="g" hint-placeholder-count="3">
+        <div class="group">
+          <!-- Phase bracket + label (grouped layout only). -->
+          <sc-if value="{{ brackets }}" hint-placeholder-val="{{ true }}">
+            <div class="bracket">
+              <span class="bracket-label">{{ g.label }}</span>
+              <svg class="bracket-svg" viewBox="0 0 100 34" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="#f4f2ec" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
+              </svg>
+            </div>
+          </sc-if>
+          <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+            <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
+              <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+                <span class="cell-num">{{ c.n }}</span>
+                <span class="cell-sym">{{ c.sym }}</span>
+                <span class="cell-name">{{ c.name }}</span>
+                <span class="cell-stat">{{ c.stat }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- BAND 2 -->
+    <div style="display:flex;align-items:flex-start;align-self:stretch;justify-content:{{ bandJustify }};gap:{{ bandGap }}px;flex-wrap:{{ bandWrap }};width:{{ bandW }};flex:none;transition:gap .45s ease;">
+      <sc-for list="{{ band2Groups }}" as="g" hint-placeholder-count="2">
+        <div class="group">
+          <sc-if value="{{ brackets }}" hint-placeholder-val="{{ true }}">
+            <div class="bracket">
+              <span class="bracket-label">{{ g.label }}</span>
+              <svg class="bracket-svg" viewBox="0 0 100 34" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="#f4f2ec" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
+              </svg>
+            </div>
+          </sc-if>
+          <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+            <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
+              <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+                <span class="cell-num">{{ c.n }}</span>
+                <span class="cell-sym">{{ c.sym }}</span>
+                <span class="cell-name">{{ c.name }}</span>
+                <span class="cell-stat">{{ c.stat }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- BAND 3 -->
+    <div style="display:flex;align-items:flex-start;align-self:stretch;justify-content:{{ bandJustify }};gap:{{ bandGap }}px;flex-wrap:{{ bandWrap }};width:{{ bandW }};flex:none;transition:gap .45s ease;">
+      <sc-for list="{{ band3Groups }}" as="g" hint-placeholder-count="3">
+        <div class="group">
+          <sc-if value="{{ brackets }}" hint-placeholder-val="{{ true }}">
+            <div class="bracket">
+              <span class="bracket-label">{{ g.label }}</span>
+              <svg class="bracket-svg" viewBox="0 0 100 34" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="#f4f2ec" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
+              </svg>
+            </div>
+          </sc-if>
+          <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+            <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
+              <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+                <span class="cell-num">{{ c.n }}</span>
+                <span class="cell-sym">{{ c.sym }}</span>
+                <span class="cell-name">{{ c.name }}</span>
+                <span class="cell-stat">{{ c.stat }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    </div>
+
+    <!-- DETACHED OVERFLOW: "Org Overhead" tiles set apart below the main table. -->
+    <sc-if value="{{ showOverflow }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px;">
+        <div style="width:220px;height:1px;background:rgba(244,242,236,0.35);"></div>
+        <span class="bracket-label" style="opacity:.9;margin-bottom:0;">{{ overflowGroup.label }}</span>
+        <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+          <sc-for list="{{ overflowGroup.cells }}" as="c" hint-placeholder-count="2">
+            <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
+              <span class="cell-num">{{ c.n }}</span>
+              <span class="cell-sym">{{ c.sym }}</span>
+              <span class="cell-name">{{ c.name }}</span>
+              <span class="cell-stat">{{ c.stat }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- LEGEND: color key, shown only in periodic (non-bracket) mode. -->
+    <sc-if value="{{ showLegend }}" hint-placeholder-val="{{ false }}">
+      <div style="align-self:stretch;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;margin-top:10px;padding-top:22px;border-top:1px solid rgba(244,242,236,0.22);">
+        <sc-for list="{{ legend }}" as="l" hint-placeholder-count="10">
+          <div class="legend-item">
+            <span class="legend-swatch" style="border-color:{{ l.bd }};background:{{ l.bg }};"></span>
+            <span class="legend-label">{{ l.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+  </div>
+  </div>
+</div>
+</x-dc>
+
+<!-- =============================================================================
+     COMPONENT LOGIC
+     data-props declares the editor-tunable props (all Layout booleans). The class
+     below extends DCLogic; renderVals() returns the flat object the template above
+     interpolates against.
+     ============================================================================= -->
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;1720px&quot;, &quot;height&quot;: &quot;1280px&quot; },
+  &quot;showTitle&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Layout&quot; },
+  &quot;showCto&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Layout&quot; },
+  &quot;showOverflow&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Layout&quot; },
+  &quot;showGroupBrackets&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Layout&quot; }
+}">
+class Component extends DCLogic {
+  // override: user's layout choice (null = follow the showGroupBrackets prop).
+  // narrow: true when the viewport is below BREAKPOINT (wrap instead of scale).
+  state = { override: null, narrow: false };
+  BREAKPOINT = 1300;
+
+  // Header toggle handlers.
+  setGrouped = () => this.setState({ override: true });
+  setTable = () => this.setState({ override: false });
+
+  // ref callbacks: capture the scaled column (rootEl) and its sizer (sizerEl).
+  setRoot = (el) => { this.rootEl = el; this.observe(); };
+  setSizer = (el) => { this.sizerEl = el; this.observe(); };
+
+  // Re-run fit() whenever the container or the table itself resizes.
+  observe = () => {
+    if (!window.ResizeObserver || !this.rootEl || !this.sizerEl) return;
+    if (!this._ro) {
+      this._ro = new ResizeObserver(() => {
+        cancelAnimationFrame(this._raf);
+        this._raf = requestAnimationFrame(this.fit);
+      });
+    }
+    const root = this.sizerEl.parentElement;
+    if (root) this._ro.observe(root);
+    this._ro.observe(this.rootEl);
+  };
+
+  // Choose between the two responsive layouts and, when wide, scale the
+  // single-row table down to fit the available width.
+  fit = () => {
+    const col = this.rootEl, sizer = this.sizerEl;
+    const root = sizer && sizer.parentElement;
+    if (!col || !sizer || !root) return;
+    const narrow = root.clientWidth < this.BREAKPOINT;
+    // Toggling layout changes the DOM; re-render first, then fit on the next pass.
+    if (this.state.narrow !== narrow) { this.setState({ narrow }); return; }
+    if (narrow) {
+      // Narrow: no scaling — let the bands wrap to fit the width.
+      col.style.transform = "none";
+      col.style.position = "static";
+      col.style.width = "100%";
+      sizer.style.width = "100%";
+      sizer.style.height = "auto";
+    } else {
+      // Wide: measure the natural single-row size, then scale to fit.
+      col.style.position = "absolute";
+      col.style.width = "max-content";
+      col.style.transform = "none";
+      const natW = col.offsetWidth, natH = col.offsetHeight;
+      if (!natW) return;
+      const s = Math.min(1, (root.clientWidth - 48) / natW);
+      col.style.transform = "scale(" + s + ")";
+      sizer.style.width = natW * s + "px";
+      sizer.style.height = natH * s + "px";
+    }
+  };
+
+  componentDidMount() {
+    window.addEventListener("resize", this.fit);
+    this.observe();
+    this.fit();
+  }
+  componentDidUpdate() {
+    this.fit();
+    // Fonts/reflow can settle after the first paint; re-fit once more shortly after.
+    clearTimeout(this._fitT);
+    this._fitT = setTimeout(this.fit, 500);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("resize", this.fit);
+    if (this._ro) this._ro.disconnect();
+    clearTimeout(this._fitT);
+  }
+
+  // Export the table as a JPEG. The header is excluded via data-noexport.
+  downloadJpg = async () => {
+    const node = this.rootEl;
+    if (!node || !window.htmlToImage) return;
+
+    // Snapshot the styles fit() manages, then render the table at natural size
+    // (unscaled, statically positioned) with padding so nothing is clipped.
+    const prevPad = node.style.padding;
+    const prevT = node.style.transform;
+    const prevPos = node.style.position;
+    const prevW = node.style.width;
+    const prevBox = node.style.boxSizing;
+    const restore = () => {
+      node.style.padding = prevPad;
+      node.style.transform = prevT;
+      node.style.position = prevPos;
+      node.style.width = prevW;
+      node.style.boxSizing = prevBox;
+      this.fit();
+    };
+    node.style.transform = "none";
+    node.style.position = "static";
+    node.style.width = "max-content";
+    node.style.padding = "48px";
+    node.style.boxSizing = "content-box";
+
+    try {
+      // Web fonts must be loaded before capture, or text exports blank/fallback.
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+      const width = node.offsetWidth;
+      const height = node.offsetHeight;
+
+      // Cap pixelRatio so a very wide table can't exceed the browser's max
+      // canvas size, which silently yields a blank image.
+      const MAX_DIM = 12000;
+      const pixelRatio = Math.max(1, Math.min(2, MAX_DIM / Math.max(width, height)));
+
+      const opts = {
+        quality: 0.95,
+        pixelRatio,
+        backgroundColor: "#0b1c39",
+        width,
+        height,
+        cacheBust: true,
+        filter: (n) => !(n.dataset && n.dataset.noexport),
+      };
+
+      // First pass primes font/image embedding in the clone; many browsers
+      // return a blank or partial image on the very first html-to-image call.
+      await window.htmlToImage.toJpeg(node, opts);
+      const url = await window.htmlToImage.toJpeg(node, opts);
+
+      const a = document.createElement("a");
+      a.download = "periodic-table-of-software-development.jpg";
+      a.href = url;
+      a.click();
+    } catch (err) {
+      console.error("JPG export failed:", err);
+      alert("Sorry — the image export failed. See the browser console for details.");
+    } finally {
+      restore();
+    }
+  };
+
+  renderVals() {
+    // brackets = "grouped" layout. User override wins; otherwise follow the prop.
+    const brackets = this.state.override === null
+      ? (this.props.showGroupBrackets ?? true)
+      : this.state.override;
+
+    // Per-group color helpers. Each phase has a hue; fill/border/swatch derive
+    // from it via OKLCH so the whole palette stays perceptually even.
+    const L = 0.72, C = 0.14;
+    const fill = (h) => `oklch(${L} ${C} ${h} / 0.18)`;   // tile background
+    const bord = (h) => `oklch(${L} ${C} ${h})`;          // tile border
+    const swBg = (h) => `oklch(${L} ${C} ${h} / 0.28)`;   // legend swatch fill
+    const swBd = (h) => `oklch(${L} ${C} ${h})`;          // legend swatch border
+    // Attach resolved colors to every cell in a group.
+    const deco = (g) => ({ ...g, cells: g.cells.map(c => ({ ...c, bd: bord(g.hue), bg: fill(g.hue) })) });
+
+    const LEAD = 85; // hue for the leadership tiles (Po / Ct)
+
+    // --- Table data. Each phase: label, hue, and its role cells. ---
+    const band1 = [
+      { label: "Discovery", hue: 25, cells: [
+        { n: 5, sym: "Ba", name: "Business Analyst", stat: "1d12 • Requirements" },
+        { n: 6, sym: "Xr", name: "UX Researcher", stat: "1d8 • Interviews" },
+        { n: 7, sym: "Sd", name: "Service Designer", stat: "1d8 • Journey Maps" },
+        { n: 8, sym: "Sk", name: "Stakeholder / Sponsor", stat: "1d4 • Scope Creep" },
+      ]},
+      { label: "Design", hue: 65, cells: [
+        { n: 13, sym: "Ux", name: "UX Designer", stat: "1d8 • Wireframes" },
+        { n: 14, sym: "Ui", name: "UI Designer", stat: "1d6 • Pixels" },
+        { n: 15, sym: "Cw", name: "Content Strategist / UX Writer", stat: "1d6 • Microcopy" },
+        { n: 16, sym: "Ac", name: "Accessibility Specialist", stat: "1d8 • Contrast Ratios" },
+        { n: 17, sym: "Dt", name: "Design Technologist", stat: "1d8 • Prototypes" },
+      ]},
+      { label: "Architecture", hue: 130, cells: [
+        { n: 21, sym: "Sa", name: "Solutions Architect", stat: "1d10 • Diagrams" },
+        { n: 22, sym: "Tl", name: "Technical Lead", stat: "1d10 • Code Reviews" },
+        { n: 23, sym: "Da", name: "Data Architect", stat: "1d8 • Schemas" },
+        { n: 24, sym: "Sc", name: "Security Architect", stat: "1d10 • Threat Models" },
+      ]},
+    ];
+    const band2 = [
+      { label: "Development", hue: 160, cells: [
+        { n: 26, sym: "Fe", name: "Frontend Developer", stat: "1d8 • CSS" },
+        { n: 27, sym: "Be", name: "Backend Developer", stat: "1d10 • Uptime" },
+        { n: 28, sym: "Fs", name: "Full-Stack Developer", stat: "1d12 • Context Switching" },
+        { n: 29, sym: "Mo", name: "Mobile Developer", stat: "1d8 • App Store Rejections" },
+        { n: 30, sym: "Db", name: "Database Administrator", stat: "1d8 • Queries" },
+        { n: 31, sym: "Do", name: "DevOps / Platform Engineer", stat: "1d10 • Deploys" },
+        { n: 32, sym: "Sr", name: "Site Reliability Engineer", stat: "1d10 • Incidents" },
+      ]},
+      { label: "Quality", hue: 195, cells: [
+        { n: 40, sym: "Qa", name: "QA Engineer", stat: "1d8 • Bugs Found" },
+        { n: 41, sym: "Qb", name: "QA Automation Engineer", stat: "1d8 • Flaky Tests" },
+        { n: 42, sym: "Pf", name: "Performance Engineer", stat: "1d10 • Load Tests" },
+        { n: 43, sym: "Pt", name: "Security Engineer / Pen Tester", stat: "1d10 • Exploits" },
+      ]},
+    ];
+    const band3 = [
+      { label: "Project & Program Management", hue: 230, cells: [
+        { n: 50, sym: "Pm", name: "Project Manager", stat: "1d8 • Gantt Charts" },
+        { n: 51, sym: "Sm", name: "Scrum Master", stat: "1d8 • Standups" },
+        { n: 52, sym: "Pg", name: "Program Manager", stat: "1d10 • Dependencies" },
+        { n: 53, sym: "Em", name: "Engineering Manager", stat: "1d10 • 1:1s" },
+      ]},
+      { label: "Delivery & Launch", hue: 275, cells: [
+        { n: 60, sym: "Rm", name: "Release Manager", stat: "1d8 • Changelogs" },
+        { n: 61, sym: "Tw", name: "Technical Writer", stat: "1d6 • Docs" },
+        { n: 62, sym: "Tr", name: "Training / Enablement Specialist", stat: "1d6 • Onboarding" },
+        { n: 63, sym: "Mk", name: "Marketing / Comms", stat: "1d6 • Launch Emails" },
+      ]},
+      { label: "Post-Launch", hue: 320, cells: [
+        { n: 70, sym: "Su", name: "Support Engineer", stat: "1d8 • Ticket Triage" },
+        { n: 71, sym: "Mn", name: "Maintenance Developer", stat: "1d8 • Tech Debt" },
+        { n: 72, sym: "An", name: "Data Analyst", stat: "1d8 • Dashboards" },
+        { n: 73, sym: "Cs", name: "Customer Success Manager", stat: "1d8 • Renewals" },
+      ]},
+    ];
+    // Detached below the main table.
+    const overflow = { label: "Org Overhead", hue: 355, cells: [
+      { n: 94, sym: "Lc", name: "Legal / Compliance", stat: "1d12 • Redlines" },
+      { n: 95, sym: "Fp", name: "Finance / Procurement", stat: "1d12 • Budget Approvals" },
+    ]};
+
+    // Legend entries: leadership first, then every phase (periodic mode only).
+    const allGroups = [...band1, ...band2, ...band3, overflow];
+    const legend = [
+      { label: "Leadership", hue: LEAD },
+      ...allGroups.map(g => ({ label: g.label, hue: g.hue })),
+    ].map(l => ({ label: l.label, bd: swBd(l.hue), bg: swBg(l.hue) }));
+
+    // Toggle button colors: the active layout's button is inverted (light fill).
+    const active = { background: "#f4f2ec", color: "#0b1c39" };
+    const idle = { background: "transparent", color: "#f4f2ec" };
+    const g = brackets ? active : idle;
+    const t = brackets ? idle : active;
+
+    return {
+      band1Groups: band1.map(deco),
+      band2Groups: band2.map(deco),
+      band3Groups: band3.map(deco),
+      overflowGroup: deco(overflow),
+      legend,
+      brackets,
+      showLegend: !brackets,
+      heroBd: bord(LEAD), heroBg: fill(LEAD),
+      ctoBd: bord(LEAD), ctoBg: fill(LEAD),
+      // Spacing collapses to a tight grid in periodic mode, opens up when grouped.
+      bandGap: brackets ? 40 : 0,
+      cellGap: brackets ? 12 : 0,
+      rowGap: brackets ? 50 : 0,
+      stackGap: brackets ? 50 : 14,
+      // Alignment/wrapping switch for the narrow (wrapped) layout.
+      bandBlockAlign: this.state.narrow ? "center" : (brackets ? "center" : "flex-start"),
+      bandJustify: this.state.narrow ? "center" : (brackets ? "center" : "flex-start"),
+      bandWrap: this.state.narrow ? "wrap" : "nowrap",
+      bandW: this.state.narrow ? "auto" : "max-content",
+      wrapperW: this.state.narrow ? "100%" : "max-content",
+      gBg: g.background, gFg: g.color,
+      tBg: t.background, tFg: t.color,
+      setGrouped: this.setGrouped,
+      setTable: this.setTable,
+      setRoot: this.setRoot,
+      setSizer: this.setSizer,
+      downloadJpg: this.downloadJpg,
+      showTitle: this.props.showTitle ?? true,
+      showCto: this.props.showCto ?? true,
+      showOverflow: this.props.showOverflow ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# OS / editor cruft
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local tooling / agent scaffolding
+.claude/
+_bmad/
+_bmad-output/
+
+# Dependencies (none currently, but guard against future tooling)
+node_modules/

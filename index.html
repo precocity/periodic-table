@@ -341,8 +341,12 @@ class Component extends DCLogic {
         filter: (n) => !(n.dataset && n.dataset.noexport),
         // Applied only to html-to-image's internal clone (never the live,
         // on-screen node), so the real page stays untouched for the whole
-        // capture.
-        style: { transform: "none", position: "static", padding: "48px", boxSizing: "content-box" },
+        // capture. border-box here is deliberate: width/height above already
+        // include the 48px padding (measured with content-box on the live
+        // node above), so the clone must treat that as the TOTAL box size —
+        // content-box would add the padding a second time, pushing the clone
+        // 48px past the canvas on every edge and clipping the padding away.
+        style: { transform: "none", position: "static", padding: "48px", boxSizing: "border-box" },
       };
 
       // First pass primes font/image embedding in the clone; many browsers

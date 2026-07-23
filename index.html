@@ -3,13 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Custom component runtime (generated from dc-runtime). Provides <x-dc>,
-     sc-for / sc-if, ref bindings, and {{ ... }} interpolation. Do not hand-edit. -->
+<!-- Custom component runtime, generated from dc-runtime. Provides the x-dc
+     element, sc-for / sc-if, ref bindings, and expression interpolation.
+     Do not hand-edit.
+
+     NOTE: the runtime re-fetches this document as raw text and locates the
+     component with a plain string search for the FIRST "x-dc" opening tag
+     and the LAST "x-dc" closing tag (support.js parseDcText). Never write
+     the literal opening tag text elsewhere in this file (e.g. in a comment)
+     or it will hijack that search and silently break the render. -->
 <script src="./support.js"></script>
 </head>
 <body>
-<!-- x-dc: root of the declarative component. <helmet> children are injected
-     into <head> at mount time. -->
+<!-- Root of the declarative component. Its "helmet" child is injected
+     into the document head at mount time. -->
 <x-dc>
 <helmet>
   <link rel="preconnect" href="https://fonts.googleapis.com">

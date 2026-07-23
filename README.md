@@ -5,6 +5,8 @@ elements in a periodic table — from Product Owner to Customer Success — comp
 tongue-in-cheek RPG-style stats (`1d20 • Vision`, `1d10 • Deploys`, …). Built by
 [Precocity](https://precocityllc.com).
 
+Launch it in your browswer [here](https://precocity.github.io/periodic-table).
+
 **Live view:** open `index.html` in any modern browser.
 
 ![The Periodic Table of Software Development](.thumbnail)

@@ -29,9 +29,10 @@
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
 </helmet>
 
-<!-- PAGE CANVAS. --ink / --edge are declared in styles.css (:root); the rest of
-     this style is page-level chrome (background, font, padding). -->
-<div style="min-height:100vh;background:#0b1c39;color:var(--ink);font-family:'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;box-sizing:border-box;padding:48px 24px;overflow-x:hidden;">
+<!-- PAGE CANVAS. --ink / --edge default in styles.css (:root) but are
+     overridden here per the active color mode, so .btn-outline/.toggle
+     (which reference var(--edge)/var(--ink)) pick it up automatically. -->
+<div style="min-height:100vh;--ink:{{ ink }};--edge:{{ edgeColor }};background:{{ pageBg }};color:var(--ink);font-family:'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;box-sizing:border-box;padding:48px 24px;overflow-x:hidden;">
   <!-- SIZER: reserves the scaled footprint of the table. fit() writes its
        width/height so surrounding page flow is correct. -->
   <div ref="{{ setSizer }}" style="position:relative;margin:0 auto;">
@@ -41,10 +42,22 @@
 
     <!-- HEADER — data-noexport hides it from the JPG export (see filter in downloadJpg). -->
     <div data-noexport="true" style="align-self:stretch;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 24px;">
-      <!-- Layout toggle. Active/idle colors flip with state, so they are inline. -->
-      <div class="toggle">
-        <button class="btn" onClick="{{ setTable }}" style="background:{{ tBg }};color:{{ tFg }};">Periodic</button>
-        <button class="btn" onClick="{{ setGrouped }}" style="background:{{ gBg }};color:{{ gFg }};">Grouped</button>
+      <!-- Layout / palette / theme toggles. Active/idle colors flip with
+           state, so they are inline. The palette + theme toggles are an
+           independent 2x2, giving the 4 color modes (Color/B&W x Dark/Light). -->
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;">
+        <div class="toggle">
+          <button class="btn" onClick="{{ setTable }}" style="background:{{ tBg }};color:{{ tFg }};">Periodic</button>
+          <button class="btn" onClick="{{ setGrouped }}" style="background:{{ gBg }};color:{{ gFg }};">Grouped</button>
+        </div>
+        <div class="toggle">
+          <button class="btn" onClick="{{ setColorPalette }}" style="background:{{ colorBg }};color:{{ colorFg }};">Color</button>
+          <button class="btn" onClick="{{ setMonoPalette }}" style="background:{{ monoBg }};color:{{ monoFg }};">Mono</button>
+        </div>
+        <div class="toggle">
+          <button class="btn" onClick="{{ setDarkTheme }}" style="background:{{ darkBg }};color:{{ darkFg }};">Dark</button>
+          <button class="btn" onClick="{{ setLightTheme }}" style="background:{{ lightBg }};color:{{ lightFg }};">Light</button>
+        </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;">
         <a class="btn btn-outline" href="https://github.com/precocity/periodic-table" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -59,7 +72,7 @@
         <div class="title-main" style="font-size:{{ titleSize }}px;letter-spacing:{{ titleTracking }}px;">THE PERIODIC TABLE</div>
         <div class="title-sub" style="font-size:{{ subSize }}px;letter-spacing:{{ subTracking }}px;">OF SOFTWARE DEVELOPMENT</div>
         <a href="https://www.precocityllc.com" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:18px;">
-          <img src="assets/precocity-logo-white.svg" alt="Precocity" style="height:34px;width:auto;display:block;opacity:.5;filter:brightness(0) invert(1);">
+          <img src="assets/precocity-logo-white.svg" alt="Precocity" style="height:34px;width:auto;display:block;opacity:.5;filter:{{ logoFilter }};">
         </a>
       </div>
     </sc-if>
@@ -100,7 +113,7 @@
             <div class="bracket">
               <span class="bracket-label">{{ g.label }}</span>
               <svg class="bracket-svg" viewBox="0 0 100 34" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="#f4f2ec" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
+                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="{{ ink }}" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
               </svg>
             </div>
           </sc-if>
@@ -126,7 +139,7 @@
             <div class="bracket">
               <span class="bracket-label">{{ g.label }}</span>
               <svg class="bracket-svg" viewBox="0 0 100 34" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="#f4f2ec" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
+                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="{{ ink }}" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
               </svg>
             </div>
           </sc-if>
@@ -152,7 +165,7 @@
             <div class="bracket">
               <span class="bracket-label">{{ g.label }}</span>
               <svg class="bracket-svg" viewBox="0 0 100 34" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="#f4f2ec" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
+                <path d="M 2 28 Q 2 17 8 17 L 46 17 Q 50 17 50 6 Q 50 17 54 17 L 92 17 Q 98 17 98 28" fill="none" stroke="{{ ink }}" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"></path>
               </svg>
             </div>
           </sc-if>
@@ -174,7 +187,7 @@
     <!-- DETACHED OVERFLOW: "Org Overhead" tiles set apart below the main table. -->
     <sc-if value="{{ showOverflow }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px;">
-        <div style="width:220px;height:1px;background:rgba(244,242,236,0.35);"></div>
+        <div style="width:220px;height:1px;background:{{ dividerColor }};"></div>
         <span class="bracket-label" style="opacity:.9;margin-bottom:0;">{{ overflowGroup.label }}</span>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:{{ cellGap }}px;transition:gap .45s ease;">
           <sc-for list="{{ overflowGroup.cells }}" as="c" hint-placeholder-count="2">
@@ -191,7 +204,7 @@
 
     <!-- LEGEND: color key, shown only in periodic (non-bracket) mode. -->
     <sc-if value="{{ showLegend }}" hint-placeholder-val="{{ false }}">
-      <div style="align-self:stretch;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;margin-top:10px;padding-top:22px;border-top:1px solid rgba(244,242,236,0.22);">
+      <div style="align-self:stretch;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;margin-top:10px;padding-top:22px;border-top:1px solid {{ legendBorderColor }};">
         <sc-for list="{{ legend }}" as="l" hint-placeholder-count="10">
           <div class="legend-item">
             <span class="legend-swatch" style="border-color:{{ l.bd }};background:{{ l.bg }};"></span>
@@ -222,12 +235,19 @@
 class Component extends DCLogic {
   // override: user's layout choice (null = follow the showGroupBrackets prop).
   // narrow: true when the viewport is below BREAKPOINT (wrap instead of scale).
-  state = { override: null, narrow: false };
+  // mono: Black & White palette (no per-phase hues). lightTheme: Light background.
+  // The 2x2 of {mono, lightTheme} is the 4 color modes: Color Dark / Color Light /
+  // Black & White Dark / Black & White Light.
+  state = { override: null, narrow: false, mono: false, lightTheme: false };
   BREAKPOINT = 1300;
 
   // Header toggle handlers.
   setGrouped = () => this.setState({ override: true });
   setTable = () => this.setState({ override: false });
+  setColorPalette = () => this.setState({ mono: false });
+  setMonoPalette = () => this.setState({ mono: true });
+  setDarkTheme = () => this.setState({ lightTheme: false });
+  setLightTheme = () => this.setState({ lightTheme: true });
 
   // ref callbacks: capture the scaled column (rootEl) and its sizer (sizerEl).
   setRoot = (el) => { this.rootEl = el; this.observe(); };
@@ -335,7 +355,7 @@ class Component extends DCLogic {
       const opts = {
         quality: 0.95,
         pixelRatio,
-        backgroundColor: "#0b1c39",
+        backgroundColor: this.state.lightTheme ? "#f4f2ec" : "#0b1c39",
         width,
         height,
         cacheBust: true,
@@ -371,17 +391,46 @@ class Component extends DCLogic {
       ? (this.props.showGroupBrackets ?? false)
       : this.state.override;
 
-    // Per-group color helpers. Each phase has a hue; fill/border/swatch derive
-    // from it via OKLCH so the whole palette stays perceptually even.
-    const L = 0.72, C = 0.14;
-    const fill = (h) => `oklch(${L} ${C} ${h} / 0.18)`;   // tile background
-    const bord = (h) => `oklch(${L} ${C} ${h})`;          // tile border
-    const swBg = (h) => `oklch(${L} ${C} ${h} / 0.28)`;   // legend swatch fill
-    const swBd = (h) => `oklch(${L} ${C} ${h})`;          // legend swatch border
-    // Attach resolved colors to every cell in a group.
-    const deco = (g) => ({ ...g, cells: g.cells.map(c => ({ ...c, bd: bord(g.hue), bg: fill(g.hue) })) });
+    // --- Color mode: {mono, lightTheme} is the 2x2 of Color/B&W x Dark/Light. ---
+    const isLight = this.state.lightTheme;
+    const isMono = this.state.mono;
+    const pageBg = isLight ? "#f4f2ec" : "#0b1c39";
+    const ink = isLight ? "#0b1c39" : "#f4f2ec";
+    const inkRGBA = (a) => (isLight ? `rgba(11,28,57,${a})` : `rgba(244,242,236,${a})`);
+    const edgeColor = isLight ? "rgba(11,28,57,0.35)" : "rgba(244,242,236,0.5)";
+    const dividerColor = isLight ? "rgba(11,28,57,0.22)" : "rgba(244,242,236,0.35)";
+    const legendBorderColor = isLight ? "rgba(11,28,57,0.18)" : "rgba(244,242,236,0.22)";
+    // brightness(0) turns the (white) source SVG solid black; Dark mode then
+    // inverts that to white. Light mode skips the invert and keeps it dark.
+    const logoFilter = isLight ? "brightness(0)" : "brightness(0) invert(1)";
+
+    // Per-group color helpers. In Color mode each phase's hue drives fill/
+    // border/swatch via OKLCH so the palette stays perceptually even; Light
+    // theme darkens/saturates it a bit since a pastel needs more weight to
+    // read against a white page. In B&W mode hue is ignored -- groups cycle
+    // through a fixed set of neutral tones (by position, not hue) so adjacent
+    // phases still read as distinct without any color.
+    const L = isLight ? 0.5 : 0.72, C = isLight ? 0.16 : 0.14;
+    const fillA = isLight ? 0.14 : 0.18;      // tile background alpha
+    const swFillA = isLight ? 0.22 : 0.28;    // legend swatch fill alpha (a touch stronger)
+    const GRAY_STEPS = [0.85, 0.68, 0.52, 0.4, 0.3];
+    const cellShade = (hue, idx) => isMono
+      ? { bd: inkRGBA(GRAY_STEPS[idx % GRAY_STEPS.length]), bg: inkRGBA(GRAY_STEPS[idx % GRAY_STEPS.length] * 0.34) }
+      : { bd: `oklch(${L} ${C} ${hue})`, bg: `oklch(${L} ${C} ${hue} / ${fillA})` };
+    // Legend swatches use a stronger fill than tiles, same border.
+    const swatchShade = (hue, idx) => isMono
+      ? { bd: inkRGBA(GRAY_STEPS[idx % GRAY_STEPS.length]), bg: inkRGBA(GRAY_STEPS[idx % GRAY_STEPS.length] * 0.55) }
+      : { bd: `oklch(${L} ${C} ${hue})`, bg: `oklch(${L} ${C} ${hue} / ${swFillA})` };
+    // Attach resolved colors to every cell in a group. idx positions the group
+    // in the fixed 9-group sequence (band1+band2+band3+overflow) so B&W's tone
+    // cycle stays consistent between the tiles and the legend.
+    const deco = (g, idx) => ({ ...g, cells: g.cells.map(c => ({ ...c, ...cellShade(g.hue, idx) })) });
 
     const LEAD = 85; // hue for the leadership tiles (Po / Ct)
+    // Leadership gets its own fixed, most-prominent tone rather than joining
+    // the B&W cycle -- it's a role tier, not one of the 9 phases.
+    const leadCell = isMono ? { bd: inkRGBA(0.92), bg: inkRGBA(0.92 * 0.34) } : { bd: `oklch(${L} ${C} ${LEAD})`, bg: `oklch(${L} ${C} ${LEAD} / ${fillA})` };
+    const leadSwatch = isMono ? { bd: inkRGBA(0.92), bg: inkRGBA(0.92 * 0.55) } : { bd: `oklch(${L} ${C} ${LEAD})`, bg: `oklch(${L} ${C} ${LEAD} / ${swFillA})` };
 
     // --- Table data. Each phase: label, hue, and its role cells. ---
     const band1 = [
@@ -449,28 +498,45 @@ class Component extends DCLogic {
     ]};
 
     // Legend entries: leadership first, then every phase (periodic mode only).
+    // Index each phase by its position in the same band1+band2+band3+overflow
+    // sequence used for the tiles, so B&W's tone cycle lines up between them.
     const allGroups = [...band1, ...band2, ...band3, overflow];
     const legend = [
-      { label: "Leadership", hue: LEAD },
-      ...allGroups.map(g => ({ label: g.label, hue: g.hue })),
-    ].map(l => ({ label: l.label, bd: swBd(l.hue), bg: swBg(l.hue) }));
+      { label: "Leadership", ...leadSwatch },
+      ...allGroups.map((ph, i) => ({ label: ph.label, ...swatchShade(ph.hue, i) })),
+    ];
 
-    // Toggle button colors: the active layout's button is inverted (light fill).
-    const active = { background: "#f4f2ec", color: "#0b1c39" };
-    const idle = { background: "transparent", color: "#f4f2ec" };
+    // Toggle button colors: the active button is inverted (ink fill / page-bg
+    // text) so it stays legible across all 4 color modes, not just dark-on-dark.
+    const active = { background: ink, color: pageBg };
+    const idle = { background: "transparent", color: ink };
     const g = brackets ? active : idle;
     const t = brackets ? idle : active;
+    const colorBtn = isMono ? idle : active;
+    const monoBtn = isMono ? active : idle;
+    const darkBtn = isLight ? idle : active;
+    const lightBtn = isLight ? active : idle;
 
     return {
-      band1Groups: band1.map(deco),
-      band2Groups: band2.map(deco),
-      band3Groups: band3.map(deco),
-      overflowGroup: deco(overflow),
+      band1Groups: band1.map((ph, i) => deco(ph, i)),
+      band2Groups: band2.map((ph, i) => deco(ph, i + band1.length)),
+      band3Groups: band3.map((ph, i) => deco(ph, i + band1.length + band2.length)),
+      overflowGroup: deco(overflow, band1.length + band2.length + band3.length),
       legend,
       brackets,
       showLegend: !brackets,
-      heroBd: bord(LEAD), heroBg: fill(LEAD),
-      ctoBd: bord(LEAD), ctoBg: fill(LEAD),
+      heroBd: leadCell.bd, heroBg: leadCell.bg,
+      ctoBd: leadCell.bd, ctoBg: leadCell.bg,
+      // Color mode (Color/B&W x Dark/Light).
+      ink, edgeColor, dividerColor, legendBorderColor, logoFilter, pageBg,
+      colorBg: colorBtn.background, colorFg: colorBtn.color,
+      monoBg: monoBtn.background, monoFg: monoBtn.color,
+      darkBg: darkBtn.background, darkFg: darkBtn.color,
+      lightBg: lightBtn.background, lightFg: lightBtn.color,
+      setColorPalette: this.setColorPalette,
+      setMonoPalette: this.setMonoPalette,
+      setDarkTheme: this.setDarkTheme,
+      setLightTheme: this.setLightTheme,
       // Spacing collapses to a tight grid in periodic mode, opens up when grouped.
       bandGap: brackets ? 40 : 0,
       cellGap: brackets ? 12 : 0,

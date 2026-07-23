@@ -40,23 +40,24 @@
   <div style="display:flex;flex-direction:column;align-items:center;gap:{{ stackGap }}px;width:max-content;position:absolute;top:0;left:0;transform-origin:top left;transition:gap .45s ease;" ref="{{ setRoot }}">
 
     <!-- HEADER — data-noexport hides it from the JPG export (see filter in downloadJpg). -->
-    <div data-noexport="true" style="align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+    <div data-noexport="true" style="align-self:stretch;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 24px;">
       <!-- Layout toggle. Active/idle colors flip with state, so they are inline. -->
       <div class="toggle">
         <button class="btn" onClick="{{ setTable }}" style="background:{{ tBg }};color:{{ tFg }};">Periodic</button>
         <button class="btn" onClick="{{ setGrouped }}" style="background:{{ gBg }};color:{{ gFg }};">Grouped</button>
       </div>
-      <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;">
         <a class="btn btn-outline" href="https://github.com/precocity/periodic-table" target="_blank" rel="noopener noreferrer">View on GitHub</a>
         <button class="btn btn-outline" onClick="{{ downloadJpg }}">Download JPG</button>
       </div>
     </div>
 
-    <!-- TITLE (optional via showTitle prop) -->
+    <!-- TITLE (optional via showTitle prop). Font-size/letter-spacing switch with
+         narrow state (see titleSize/titleTracking/subSize/subTracking below). -->
     <sc-if value="{{ showTitle }}" hint-placeholder-val="{{ true }}">
       <div style="align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-        <div style="font-size:30px;font-weight:600;letter-spacing:9px;line-height:1.3;">THE PERIODIC TABLE</div>
-        <div style="font-size:22px;font-weight:300;letter-spacing:7px;line-height:1.4;opacity:.9;">OF SOFTWARE DEVELOPMENT</div>
+        <div class="title-main" style="font-size:{{ titleSize }}px;letter-spacing:{{ titleTracking }}px;">THE PERIODIC TABLE</div>
+        <div class="title-sub" style="font-size:{{ subSize }}px;letter-spacing:{{ subTracking }}px;">OF SOFTWARE DEVELOPMENT</div>
         <a href="https://www.precocityllc.com" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:18px;">
           <img src="assets/precocity-logo-white.svg" alt="Precocity" style="height:34px;width:auto;display:block;opacity:.5;filter:brightness(0) invert(1);">
         </a>
@@ -69,7 +70,7 @@
 
     <!-- PERIOD 1: the two leadership tiles (Product Owner + CTO), pinned to the
          row ends. Colors come from heroBd/heroBg + ctoBd/ctoBg. -->
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;align-self:stretch;">
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;align-self:stretch;">
       <div class="cell" style="border-color:{{ heroBd }};background:{{ heroBg }};">
         <span class="cell-num">1</span>
         <span class="cell-charge">+/–</span>
@@ -93,7 +94,7 @@
     <!-- BAND 1 -->
     <div style="display:flex;align-items:flex-start;align-self:stretch;justify-content:{{ bandJustify }};gap:{{ bandGap }}px;flex-wrap:{{ bandWrap }};width:{{ bandW }};flex:none;transition:gap .45s ease;">
       <sc-for list="{{ band1Groups }}" as="g" hint-placeholder-count="3">
-        <div class="group">
+        <div class="group" style="width:{{ groupW }};">
           <!-- Phase bracket + label (grouped layout only). -->
           <sc-if value="{{ brackets }}" hint-placeholder-val="{{ true }}">
             <div class="bracket">
@@ -103,7 +104,7 @@
               </svg>
             </div>
           </sc-if>
-          <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+          <div style="display:flex;flex-wrap:{{ bandWrap }};justify-content:{{ bandJustify }};gap:{{ cellGap }}px;transition:gap .45s ease;">
             <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
               <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
                 <span class="cell-num">{{ c.n }}</span>
@@ -120,7 +121,7 @@
     <!-- BAND 2 -->
     <div style="display:flex;align-items:flex-start;align-self:stretch;justify-content:{{ bandJustify }};gap:{{ bandGap }}px;flex-wrap:{{ bandWrap }};width:{{ bandW }};flex:none;transition:gap .45s ease;">
       <sc-for list="{{ band2Groups }}" as="g" hint-placeholder-count="2">
-        <div class="group">
+        <div class="group" style="width:{{ groupW }};">
           <sc-if value="{{ brackets }}" hint-placeholder-val="{{ true }}">
             <div class="bracket">
               <span class="bracket-label">{{ g.label }}</span>
@@ -129,7 +130,7 @@
               </svg>
             </div>
           </sc-if>
-          <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+          <div style="display:flex;flex-wrap:{{ bandWrap }};justify-content:{{ bandJustify }};gap:{{ cellGap }}px;transition:gap .45s ease;">
             <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
               <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
                 <span class="cell-num">{{ c.n }}</span>
@@ -146,7 +147,7 @@
     <!-- BAND 3 -->
     <div style="display:flex;align-items:flex-start;align-self:stretch;justify-content:{{ bandJustify }};gap:{{ bandGap }}px;flex-wrap:{{ bandWrap }};width:{{ bandW }};flex:none;transition:gap .45s ease;">
       <sc-for list="{{ band3Groups }}" as="g" hint-placeholder-count="3">
-        <div class="group">
+        <div class="group" style="width:{{ groupW }};">
           <sc-if value="{{ brackets }}" hint-placeholder-val="{{ true }}">
             <div class="bracket">
               <span class="bracket-label">{{ g.label }}</span>
@@ -155,7 +156,7 @@
               </svg>
             </div>
           </sc-if>
-          <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+          <div style="display:flex;flex-wrap:{{ bandWrap }};justify-content:{{ bandJustify }};gap:{{ cellGap }}px;transition:gap .45s ease;">
             <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="4">
               <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
                 <span class="cell-num">{{ c.n }}</span>
@@ -175,7 +176,7 @@
       <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px;">
         <div style="width:220px;height:1px;background:rgba(244,242,236,0.35);"></div>
         <span class="bracket-label" style="opacity:.9;margin-bottom:0;">{{ overflowGroup.label }}</span>
-        <div style="display:flex;gap:{{ cellGap }}px;transition:gap .45s ease;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:{{ cellGap }}px;transition:gap .45s ease;">
           <sc-for list="{{ overflowGroup.cells }}" as="c" hint-placeholder-count="2">
             <div class="cell" style="border-color:{{ c.bd }};background:{{ c.bg }};">
               <span class="cell-num">{{ c.n }}</span>
@@ -475,12 +476,26 @@ class Component extends DCLogic {
       cellGap: brackets ? 12 : 0,
       rowGap: brackets ? 50 : 0,
       stackGap: brackets ? 50 : 14,
-      // Alignment/wrapping switch for the narrow (wrapped) layout.
-      bandBlockAlign: this.state.narrow ? "center" : (brackets ? "center" : "flex-start"),
+      // Alignment/wrapping switch for the narrow (wrapped) layout. Narrow rows
+      // must stretch (not shrink-to-fit) so their width is actually constrained
+      // by the viewport -- flex-wrap only wraps children once their container
+      // has a real width to overflow; shrink-to-fit sizing never triggers it.
+      bandBlockAlign: this.state.narrow ? "stretch" : (brackets ? "center" : "flex-start"),
       bandJustify: this.state.narrow ? "center" : (brackets ? "center" : "flex-start"),
       bandWrap: this.state.narrow ? "wrap" : "nowrap",
       bandW: this.state.narrow ? "auto" : "max-content",
+      // Same reasoning as bandBlockAlign: a group's own cell row (band2's
+      // Development group alone is 7 cells) needs a constrained group width
+      // in narrow mode or it can never wrap internally.
+      groupW: this.state.narrow ? "100%" : "max-content",
       wrapperW: this.state.narrow ? "100%" : "max-content",
+      // Title scales down with the same narrow flag as everything else --
+      // not vw/clamp(), which sizes against the real browser viewport and
+      // breaks once this component's own container width diverges from it.
+      titleSize: this.state.narrow ? 20 : 30,
+      titleTracking: this.state.narrow ? 4 : 9,
+      subSize: this.state.narrow ? 15 : 22,
+      subTracking: this.state.narrow ? 3 : 7,
       gBg: g.background, gFg: g.color,
       tBg: t.background, tFg: t.color,
       setGrouped: this.setGrouped,
